@@ -1,0 +1,20 @@
+#!/data/data/com.termux/files/usr/bin/bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../lib/utils.sh"
+
+CONFIG="${SCRIPT_DIR}/../etc/config.json"
+[ -f "$CONFIG" ] || die "Missing config: $CONFIG"
+
+case "$1" in
+  discover)
+    "${SCRIPT_DIR}/discover" "$(jq -r '.base_url' "$CONFIG")" "${2:-0}" | tee "${SCRIPT_DIR}/../tmp/manifest.txt"
+    ;;
+  download)
+    [ -f "${SCRIPT_DIR}/../tmp/manifest.txt" ] || die "Run discovery first"
+    "${SCRIPT_DIR}/download" "${SCRIPT_DIR}/../tmp/manifest.txt"
+    ;;
+  *)
+    echo "Usage: $0 [discover|download]"
+    exit 1
+    ;;
+esac

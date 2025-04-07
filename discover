@@ -1,0 +1,25 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -eo pipefail
+source "$(dirname "$0")/../lib/utils.sh"
+
+URL="$1"
+DEPTH="${2:-0}"
+MAX_DEPTH=$(jq -r '.max_depth // 3' "$CONFIG")
+
+discover_links() {
+  if command -v pup >/dev/null; then
+    curl -s "$1" | pup 'a attr{href}' | grep -vE '^(../|$)'
+  else
+    curl -s "$1" | grep -oE 'href="[^"]+"' | sed 's/href="//;s/"$//' | grep -vE '^(../|$)'
+  fi
+}
+
+[ "$DEPTH" -le "$MAX_DEPTH" ] || exit 0
+
+while read -r link; do
+  if [[ "$link" =~ /$ ]]; then
+    "$0" "${URL%/}/$link" $((DEPTH + 1))
+  else
+    echo "${URL%/}/$link"
+  fi
+done < <(discover_links "$URL")

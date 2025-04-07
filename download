@@ -1,0 +1,15 @@
+#!/data/data/com.termux/files/usr/bin/bash
+source "$(dirname "$0")/../lib/utils.sh"
+
+CONFIG="$(dirname "$0")/../etc/config.json"
+MANIFEST="$1"
+
+aria2c \
+  --input-file="$MANIFEST" \
+  --dir="$(jq -r '.output_dir' "$CONFIG")" \
+  --continue \
+  --remote-time \
+  --max-tries=3 \
+  --retry-wait=5 \
+  --auto-file-renaming=false \
+  --console-log-level=warn
